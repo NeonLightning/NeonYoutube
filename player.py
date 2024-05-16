@@ -38,7 +38,7 @@ def setup():
     is_setup_done = config.getboolean('app', 'is_setup_done')
     if not is_setup_done:
         if not check_and_install_package('tk', 'python3-tk'):
-            print("Failed to install Pygame.")
+            print("Failed to install tk.")
             sys.exit(1)
         if not check_and_install_package('flask', 'python3-flask'):
             print("Failed to install Flask.")
