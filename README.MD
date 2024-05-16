@@ -1,6 +1,6 @@
 # YouTube Player Application
 
-This Flask application allows you to download and play YouTube videos sequentially. It manages a video queue, displays search results on a separate page, and updates the queue with new items while playing. The application also displays the title of the next video before it is downloaded.
+This Flask application allows you to and play YouTube videos sequentially. It manages a video queue, displays search results on a separate page, and updates the queue with new items while playing. The application also displays the title of the next video before it is played.
 
 
 run using `python3 ./player.py'
