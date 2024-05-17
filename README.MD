@@ -5,9 +5,15 @@ This Flask application allows you to and play YouTube videos sequentially. It ma
 
 run using `python3 ./player.py'
 
-it will install required dependancies if not found.
+first run it will ask in console for you to authenticate
 
-on first encounter of a age restricted video you will need to follow the instructions output to console. but after that it won't be needed.
+this will only happen the first time you run. it's to bypass age restrictions.
+
+it will ask for a new one when you encounter an age restricted video if the token changes though.
+
+this is only until i figure out an age bypass.
+
+it will install required dependancies if not found.
 
 
 ## Screenshots

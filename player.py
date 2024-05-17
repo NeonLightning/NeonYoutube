@@ -75,6 +75,18 @@ log.setLevel(logging.ERROR)
 app.config['VIDEO_QUEUE'] = []
 app.config['ready_for_new_queue'] = True
 
+def authenticate_user():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    is_authenticated = config.getboolean('app', 'is_authenticated', fallback=False)
+    if not is_authenticated:
+        yt = YouTube('https://www.youtube.com/watch?v=TB7e8hI_Yew', use_oauth=True)
+        title = yt.title
+        logging.error(f"{title}")
+        config.set('app', 'is_authenticated', 'True')
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
+            
 def display_black_screen():
     global root
     root = tk.Tk()
@@ -305,6 +317,7 @@ def skip():
         return f"An error occurred: {e}"
 
 if __name__ == '__main__':
+    authenticate_user()
     gui_thread = threading.Thread(target=display_black_screen)
     gui_thread.start()
     app.run(host='0.0.0.0', port=5000, use_reloader=False)
