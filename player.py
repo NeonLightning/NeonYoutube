@@ -82,7 +82,7 @@ def authenticate_user():
     if not is_authenticated:
         yt = YouTube('https://www.youtube.com/watch?v=TB7e8hI_Yew', use_oauth=True)
         title = yt.title
-        logging.error(f"{title}")
+        logging.debug(f"{title}")
         config.set('app', 'is_authenticated', 'True')
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
