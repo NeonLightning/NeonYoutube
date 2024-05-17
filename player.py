@@ -156,7 +156,7 @@ def play_video_from_queue():
                 stream = YouTube(video_url).streams.get_highest_resolution()
                 stream.download(output_path="/tmp", filename="ytvid.mp4")
             except AgeRestrictedError as e:
-                app.config['next_video_title'] = f"THIS VIDEO IS AGE RESTRICTED {video_info['title']}"
+                app.config['next_video_title'] = f"{video_info['title']}"
                 stream = YouTube(video_url, use_oauth=True).streams.get_highest_resolution()
                 stream.download(output_path="/tmp", filename="ytvid.mp4")
             process = subprocess.Popen(["vlc", "-fq", "--play-and-exit", "--extraintf", "--no-mouse-events", "--video-on-top", "--intf", "dummy", "--no-video-title-show", "--mouse-hide-timeout", "0", videopath])
@@ -191,7 +191,6 @@ def index():
 def add_to_queue():
     video_url = request.form['video_url']
     if '&list=' in video_url and 'watch?v=' in video_url:
-        # This is a playlist URL that starts with a video
         playlist_id = extract_playlist_id(video_url)
         playlist_url = f'https://www.youtube.com/playlist?list={playlist_id}'
         playlist = Playlist(playlist_url)
@@ -202,7 +201,6 @@ def add_to_queue():
             }
             app.config['VIDEO_QUEUE'].append(video_info)
     elif '?list=' in video_url:
-        # This is a regular playlist URL
         playlist_id = extract_playlist_id(video_url)
         playlist_url = f'https://www.youtube.com/playlist?list={playlist_id}'
         playlist = Playlist(playlist_url)
@@ -213,7 +211,6 @@ def add_to_queue():
             }
             app.config['VIDEO_QUEUE'].append(video_info)
     else:
-        # This is a single video URL
         yt = YouTube(video_url)
         video_info = {
             'title': yt.title,
