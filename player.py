@@ -109,6 +109,7 @@ def display_black_screen():
         import tkinter as tk
         global root
         root = tk.Tk()
+        root.config(cursor='none')
         root.attributes('-fullscreen', True)
         root.configure(background='black')
         font = ('Helvetica', 24)
