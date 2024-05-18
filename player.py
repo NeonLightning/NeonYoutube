@@ -1,4 +1,4 @@
-import configparser, subprocess, pkg_resources,  sys, os
+import configparser, subprocess, pkg_resources,  sys, os, logging, threading, time
 
 def check_and_install_package(package_name, apt_name=None):
     try:
@@ -56,8 +56,8 @@ def setup():
         if not check_and_install_package('pytube'):
             print("Failed to install PyTube.")
             sys.exit(1)
-        if not check_and_install_package('vlc'):
-            print("Failed to install VLC.")
+        if not check_and_install_package('mpv'):
+            print("Failed to install mpv.")
             sys.exit(1)
         config.set('app', 'is_setup_done', 'True')
         with open('config.ini', 'w') as configfile:
@@ -69,7 +69,6 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from pytube import Search, YouTube, innertube, Playlist
 from pytube.innertube import _default_clients
 from pytube.exceptions import AgeRestrictedError
-import tkinter as tk
 
 innertube._cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
 innertube._token_file = os.path.join(innertube._cache_dir, 'tokens.json')
@@ -79,12 +78,12 @@ innertube._default_clients["ANDROID_EMBED"]["context"]["client"]["clientVersion"
 innertube._default_clients["IOS_EMBED"]["context"]["client"]["clientVersion"] = "19.08.35"
 innertube._default_clients["IOS_MUSIC"]["context"]["client"]["clientVersion"] = "6.41"
 innertube._default_clients["ANDROID_MUSIC"] = _default_clients["ANDROID_CREATOR"]
-os.environ['DISPLAY'] = ':0'
 app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__)))
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 app.config['VIDEO_QUEUE'] = []
 app.config['ready_for_new_queue'] = True
+last_printed_status = ""
 
 def authenticate_user():
     config = configparser.ConfigParser()
@@ -99,42 +98,73 @@ def authenticate_user():
             config.write(configfile)
             
 def display_black_screen():
-    global root
-    root = tk.Tk()
-    root.attributes('-fullscreen', True)
-    root.configure(background='black')
-    font = ('Helvetica', 24)
-    main_frame = tk.Frame(root, bg='black')
-    main_frame.pack(expand=True)
-    ip_eth0 = get_ip_address('eth0')
-    ip_wlan0 = get_ip_address('wlan0')
-    ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
-    label_ip = tk.Label(text=f"http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}", fg="purple", bg="black", font=font)
-    label_ip.pack(anchor='nw')
-    title_frame = tk.Frame(main_frame, bg='black')
-    title_frame.pack(expand=True)
-    label = tk.Label(title_frame, text="No video playing", fg="white", bg="black", font=font)
-    label.pack(expand=True)
-    loading_label = tk.Label(title_frame, text="", fg="white", bg="black", font=font)
-    loading_label.pack(expand=True)
-    def update_text():
-        if app.config.get('next_video_title'):
-            next_video_title = app.config['next_video_title']
-            label.config(text=next_video_title)
-            loading_label.config(text="Loading...")
-        else:
-            label.config(text="No video playing")
-            loading_label.config(text="")
+    def is_x_server_running():
+        try:
+            subprocess.check_output(['pidof', 'Xorg'])
+            return True
+        except subprocess.CalledProcessError:
+            return False
+    if is_x_server_running():
+        os.environ['DISPLAY'] = ':0'
+        import tkinter as tk
+        global root
+        root = tk.Tk()
+        root.attributes('-fullscreen', True)
+        root.configure(background='black')
+        font = ('Helvetica', 24)
+        main_frame = tk.Frame(root, bg='black')
+        main_frame.pack(expand=True)
         ip_eth0 = get_ip_address('eth0')
         ip_wlan0 = get_ip_address('wlan0')
         ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
-        label_ip.config(text=f"http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}")
-        root.after(200, update_text)
-    update_text()
-    subprocess.run(['xset', 's', 'off'])
-    subprocess.run(['xset', '-dpms'])    
-    root.mainloop()
-    
+        label_ip = tk.Label(text=f"http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}", fg="purple", bg="black", font=font)
+        label_ip.pack(anchor='nw')
+        title_frame = tk.Frame(main_frame, bg='black')
+        title_frame.pack(expand=True)
+        label = tk.Label(title_frame, text="No video playing", fg="white", bg="black", font=font)
+        label.pack(expand=True)
+        loading_label = tk.Label(title_frame, text="", fg="white", bg="black", font=font)
+        loading_label.pack(expand=True)
+        def update_text():
+            if app.config.get('next_video_title'):
+                next_video_title = app.config['next_video_title']
+                label.config(text=next_video_title)
+                loading_label.config(text="Loading...")
+            else:
+                label.config(text="No video playing")
+                loading_label.config(text="")
+            ip_eth0 = get_ip_address('eth0')
+            ip_wlan0 = get_ip_address('wlan0')
+            ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
+            label_ip.config(text=f"http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}")
+            root.after(200, update_text)
+        update_text()
+        subprocess.run(['xset', 's', 'off'])
+        subprocess.run(['xset', '-dpms'])    
+        root.mainloop()
+    else:
+        print_status_to_console()
+
+def print_status_to_console():
+    global last_printed_status
+    current_status = ""
+    while True:
+        if app.config.get('next_video_title'):
+            next_video_title = app.config['next_video_title']
+            current_status = f"\nTitle: {next_video_title}\nLoading...\n"
+        else:
+            current_status = "\nNo video playing\n"
+        ip_eth0 = get_ip_address('eth0')
+        ip_wlan0 = get_ip_address('wlan0')
+        ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
+        current_status += f"IP Address: http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}\n"
+        
+        if current_status != last_printed_status:
+            print(current_status)
+            last_printed_status = current_status
+        
+        time.sleep(2)
+        
 def extract_playlist_id(url):
     query = url.split('?')[1]
     params = query.split('&')
@@ -170,7 +200,9 @@ def play_video_from_queue():
                 app.config['next_video_title'] = f"{video_info['title']}"
                 stream = YouTube(video_url, use_oauth=True).streams.get_highest_resolution()
                 stream.download(output_path="/tmp", filename="ytvid.mp4")
-            process = subprocess.Popen(["vlc", "-fq", "--play-and-exit", "--extraintf", "--no-mouse-events", "--video-on-top", "--intf", "dummy", "--no-video-title-show", "--mouse-hide-timeout", "0", videopath])
+            process = subprocess.Popen([
+                "mpv", "--fullscreen", "--no-border", "--ontop", "--no-terminal", videopath
+            ], stderr=subprocess.DEVNULL)
             while True:
                 if process.poll() is not None:
                     break
