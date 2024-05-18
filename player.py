@@ -70,6 +70,7 @@ from pytube import Search, YouTube, innertube, Playlist
 from pytube.innertube import _default_clients
 from pytube.exceptions import AgeRestrictedError
 import flask.cli
+
 flask.cli.show_server_banner = lambda *args: None
 logging.getLogger("werkzeug").disabled = True
 innertube._cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
@@ -208,6 +209,7 @@ def print_status_to_console():
         current_status += f"Address: http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}\n"
         
         if current_status != last_printed_status:
+            os.system('clear')
             print(current_status)
             last_printed_status = current_status
         
