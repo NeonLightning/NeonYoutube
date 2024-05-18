@@ -1,4 +1,4 @@
-import configparser, subprocess, pkg_resources, sys, os, logging, time, threading, random
+import configparser, subprocess, pkg_resources,  sys, os
 
 def check_and_install_package(package_name, apt_name=None):
     try:
@@ -6,27 +6,37 @@ def check_and_install_package(package_name, apt_name=None):
         return True
     except pkg_resources.DistributionNotFound:
         pass
+    apt_installed = False
     if apt_name:
         apt_check = subprocess.run(['dpkg', '-s', apt_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         apt_installed = apt_check.returncode == 0 and "Status: install ok installed" in apt_check.stdout.decode()
-    else:
-        apt_installed = False
+    pip_installed = False
     pip_check = subprocess.run(['pip3', 'show', package_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     pip_installed = pip_check.returncode == 0
     if apt_installed or pip_installed:
         return True
+    if package_name == 'vlc':
+        vlc_check = subprocess.run(['which', 'vlc'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        vlc_installed = vlc_check.returncode == 0
+        if vlc_installed:
+            return True
+        else:
+            try:
+                subprocess.check_call(['sudo', 'apt', 'install', '-y', 'vlc'])
+                return True
+            except subprocess.CalledProcessError:
+                pass
     if apt_name:
         try:
             subprocess.check_call(['sudo', 'apt', 'install', '-y', apt_name])
             return True
         except subprocess.CalledProcessError:
             pass
-    if package_name == 'vlc':
-        vlc_check = subprocess.run(['vlc', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        vlc_installed = vlc_check.returncode == 0
-        if vlc_installed:
-            return True
-    return False
+    try:
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', package_name, '--break-system-packages'])
+        return True
+    except subprocess.CalledProcessError:
+        pass
 
 def setup():
     config = configparser.ConfigParser()
@@ -43,7 +53,7 @@ def setup():
         if not check_and_install_package('flask', 'python3-flask'):
             print("Failed to install Flask.")
             sys.exit(1)
-        if not check_and_install_package('pytube', 'python3-pytube'):
+        if not check_and_install_package('pytube'):
             print("Failed to install PyTube.")
             sys.exit(1)
         if not check_and_install_package('vlc'):
@@ -53,6 +63,7 @@ def setup():
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
 setup()
+
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from pytube import Search, YouTube, innertube, Playlist
