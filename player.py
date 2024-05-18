@@ -69,7 +69,9 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from pytube import Search, YouTube, innertube, Playlist
 from pytube.innertube import _default_clients
 from pytube.exceptions import AgeRestrictedError
-
+import flask.cli
+flask.cli.show_server_banner = lambda *args: None
+logging.getLogger("werkzeug").disabled = True
 innertube._cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
 innertube._token_file = os.path.join(innertube._cache_dir, 'tokens.json')
 innertube._default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
@@ -79,8 +81,6 @@ innertube._default_clients["IOS_EMBED"]["context"]["client"]["clientVersion"] = 
 innertube._default_clients["IOS_MUSIC"]["context"]["client"]["clientVersion"] = "6.41"
 innertube._default_clients["ANDROID_MUSIC"] = _default_clients["ANDROID_CREATOR"]
 app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__)))
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
 app.config['VIDEO_QUEUE'] = []
 app.config['ready_for_new_queue'] = True
 last_printed_status = ""
@@ -137,7 +137,7 @@ def display_black_screen():
             ip_eth0 = get_ip_address('eth0')
             ip_wlan0 = get_ip_address('wlan0')
             ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
-            label_ip.config(text=f"http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}")
+            label_ip.config(text=f"Address: http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}")
             root.after(200, update_text)
         update_text()
         subprocess.run(['xset', 's', 'off'])
@@ -145,26 +145,6 @@ def display_black_screen():
         root.mainloop()
     else:
         print_status_to_console()
-
-def print_status_to_console():
-    global last_printed_status
-    current_status = ""
-    while True:
-        if app.config.get('next_video_title'):
-            next_video_title = app.config['next_video_title']
-            current_status = f"\nTitle: {next_video_title}\nLoading...\n"
-        else:
-            current_status = "\nNo video playing\n"
-        ip_eth0 = get_ip_address('eth0')
-        ip_wlan0 = get_ip_address('wlan0')
-        ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
-        current_status += f"IP Address: http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}\n"
-        
-        if current_status != last_printed_status:
-            print(current_status)
-            last_printed_status = current_status
-        
-        time.sleep(2)
         
 def extract_playlist_id(url):
     query = url.split('?')[1]
@@ -212,6 +192,26 @@ def play_video_from_queue():
             subprocess.Popen(["rm", "-rf", videopath])
         app.config['ready_for_new_queue'] = True
         break
+
+def print_status_to_console():
+    global last_printed_status
+    current_status = ""
+    while True:
+        if app.config.get('next_video_title'):
+            next_video_title = app.config['next_video_title']
+            current_status = f"\nTitle: {next_video_title}\nLoading...\n"
+        else:
+            current_status = "\nNo video playing\n"
+        ip_eth0 = get_ip_address('eth0')
+        ip_wlan0 = get_ip_address('wlan0')
+        ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
+        current_status += f"Address: http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}\n"
+        
+        if current_status != last_printed_status:
+            print(current_status)
+            last_printed_status = current_status
+        
+        time.sleep(2)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -361,4 +361,8 @@ if __name__ == '__main__':
     authenticate_user()
     gui_thread = threading.Thread(target=display_black_screen)
     gui_thread.start()
+    ip_eth0 = get_ip_address('eth0')
+    ip_wlan0 = get_ip_address('wlan0')
+    ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
+    print(f"Address: http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}")
     app.run(host='0.0.0.0', port=5000, use_reloader=False)
