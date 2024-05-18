@@ -22,7 +22,7 @@ def check_and_install_package(package_name, apt_name=None):
             return True
         else:
             try:
-                subprocess.check_call(['sudo', 'apt', 'install', '-y', 'vlc'])
+                subprocess.check_call(['sudo', 'apt', 'install', '-y', 'mpv'])
                 return True
             except subprocess.CalledProcessError:
                 pass
