@@ -64,7 +64,6 @@ def setup():
             config.write(configfile)
 setup()
 
-
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from pytube import Search, YouTube, innertube, Playlist
 from pytube.innertube import _default_clients
@@ -94,12 +93,6 @@ def authenticate_user():
     logging.debug(f"{title}")
             
 def display_black_screen():
-    def is_x_server_running():
-        try:
-            subprocess.check_output(['pidof', 'Xorg'])
-            return True
-        except subprocess.CalledProcessError:
-            return False
     if is_x_server_running():
         os.environ['DISPLAY'] = ':0'
         import tkinter as tk
@@ -162,7 +155,13 @@ def get_ip_address(interface):
         return None
     except subprocess.CalledProcessError:
         return None
-
+def is_x_server_running():
+    try:
+        subprocess.check_output(['pidof', 'Xorg'])
+        return True
+    except subprocess.CalledProcessError:
+        return False
+    
 def play_video_from_queue():
     while app.config.get('is_playing', False):
         while app.config['VIDEO_QUEUE']:
@@ -203,12 +202,10 @@ def print_status_to_console():
         ip_wlan0 = get_ip_address('wlan0')
         ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
         current_status += f"Address: http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}\n"
-        
         if current_status != last_printed_status:
             os.system('clear')
             print(current_status)
             last_printed_status = current_status
-        
         time.sleep(2)
 
 @app.route('/', methods=['GET', 'POST'])
@@ -216,6 +213,8 @@ def index():
     if request.method == 'POST':
         search_term = request.form['search_term']
         s = Search(search_term)
+        if is_x_server_running() is False:
+            print(f"Searching: {search_term}")
         if s.results:
             s.get_next_results()
             results_data = []
