@@ -68,12 +68,14 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from pytube import Search, YouTube, innertube, Playlist
 from pytube.innertube import _default_clients
 from pytube.exceptions import AgeRestrictedError
+import pytube.request
 import flask.cli
 
 flask.cli.show_server_banner = lambda *args: None
 logging.getLogger("werkzeug").disabled = True
 pytube_logger = logging.getLogger('pytube')
 pytube_logger.setLevel(logging.ERROR)
+pytube.request.default_range_size = 1048576
 innertube._cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
 innertube._token_file = os.path.join(innertube._cache_dir, 'tokens.json')
 innertube._default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
@@ -86,6 +88,7 @@ app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__)))
 app.config['VIDEO_QUEUE'] = []
 app.config['ready_for_new_queue'] = True
 last_printed_status = ""
+progress_percentage = 0
 
 def authenticate_user():
     yt = YouTube('https://www.youtube.com/watch?v=TB7e8hI_Yew', use_oauth=True)
@@ -162,6 +165,13 @@ def is_x_server_running():
     except subprocess.CalledProcessError:
         return False
     
+def on_progress(stream, chunk, bytes_remaining):
+    total_size = stream.filesize
+    bytes_downloaded = total_size - bytes_remaining
+    percentage = (bytes_downloaded / total_size) * 100 if total_size else 0
+    app.config['progress_percentage'] = percentage
+    return percentage
+
 def play_video_from_queue():
     while app.config.get('is_playing', False):
         while app.config['VIDEO_QUEUE']:
@@ -171,11 +181,11 @@ def play_video_from_queue():
             video_url = f'https://www.youtube.com/watch?v={video_info["video_id"]}'
             videopath = "/tmp/ytvid.mp4"
             try:
-                stream = YouTube(video_url).streams.get_highest_resolution()
+                stream = YouTube(video_url, on_progress_callback=on_progress).streams.get_highest_resolution()
                 stream.download(output_path="/tmp", filename="ytvid.mp4")
             except AgeRestrictedError as e:
                 app.config['next_video_title'] = f"{video_info['title']}"
-                stream = YouTube(video_url, use_oauth=True).streams.get_highest_resolution()
+                stream = YouTube(video_url, use_oauth=True, on_progress_callback=on_progress).streams.get_highest_resolution()
                 stream.download(output_path="/tmp", filename="ytvid.mp4")
             process = subprocess.Popen([
                 "mpv", "--fullscreen", "--no-border", "--ontop", "--no-terminal", videopath
@@ -191,11 +201,11 @@ def play_video_from_queue():
 
 def print_status_to_console():
     global last_printed_status
-    current_status = ""
     while True:
         if app.config.get('next_video_title'):
             next_video_title = app.config['next_video_title']
-            current_status = f"\nTitle: {next_video_title}\nLoading...\n"
+            progress_percentage = app.config.get('progress_percentage', 0)
+            current_status = f"\nTitle: {next_video_title}\nDownloading Progress: {progress_percentage:.1f}%\n"
         else:
             current_status = "\nNo video playing\n"
         ip_eth0 = get_ip_address('eth0')
