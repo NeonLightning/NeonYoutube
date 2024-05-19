@@ -75,7 +75,7 @@ flask.cli.show_server_banner = lambda *args: None
 logging.getLogger("werkzeug").disabled = True
 pytube_logger = logging.getLogger('pytube')
 pytube_logger.setLevel(logging.ERROR)
-pytube.request.default_range_size = 1048576
+pytube.request.default_range_size = 524288
 innertube._cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
 innertube._token_file = os.path.join(innertube._cache_dir, 'tokens.json')
 innertube._default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
@@ -118,10 +118,10 @@ def display_black_screen():
         loading_label = tk.Label(title_frame, text="", fg="white", bg="black", font=font)
         loading_label.pack(expand=True)
         def update_text():
-            global progress_percentage
             if app.config.get('next_video_title'):
                 next_video_title = app.config['next_video_title']
                 label.config(text=next_video_title)
+                progress_percentage = app.config.get('progress_percentage', 0)
                 current_status = f"\nDownloading Progress: {progress_percentage:.1f}%\n"
                 loading_label.config(text=current_status)
             else:
