@@ -1,4 +1,4 @@
-import configparser, subprocess, pkg_resources,  sys, os, logging, threading, time
+import configparser, subprocess, pkg_resources,  sys, os, logging, threading, time, random
 
 def check_and_install_package(package_name, apt_name=None):
     try:
@@ -216,6 +216,8 @@ def index():
         if is_x_server_running() is False:
             print(f"Searching: {search_term}")
         if s.results:
+            s.get_next_results()
+            s.get_next_results()
             s.get_next_results()
             results_data = []
             for i, result in enumerate(s.results, start=1):
