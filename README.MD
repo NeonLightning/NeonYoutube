@@ -13,8 +13,9 @@ it will ask for a new one when you encounter an age restricted video if the toke
 
 this is only until i figure out an age bypass.
 
-it will install required dependancies if not found.
+it will install required dependancies if not found but requires setuptools. if you want to skip this step and install the deps yourself just change false to true in config.ini is_setup_done.
 
+if you want a background there is rudimentary functionality for it. just place a file named background.png and it'll scale to your screen.
 
 ## Screenshots
 
