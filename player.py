@@ -51,6 +51,9 @@ def setup():
             if not check_and_install_package('tk', 'python3-tk'):
                 print("Failed to install tk.")
                 sys.exit(1)
+            if not check_and_install_package('pillow', 'python3-pil.imagetk'):
+                print("Failed to install PIL.")
+                sys.exit(1)
         if not check_and_install_package('flask', 'python3-flask'):
             print("Failed to install Flask.")
             sys.exit(1)
@@ -105,10 +108,19 @@ def display_black_screen():
     if is_x_server_running():
         os.environ['DISPLAY'] = ':0'
         import tkinter as tk
+        from PIL import Image, ImageTk
         global root
         root = tk.Tk()
         root.config(cursor='none')
         root.attributes('-fullscreen', True)
+        if os.path.exists("./background.png"):
+            original_image = Image.open("background.png")
+            screen_width = root.winfo_screenwidth()
+            screen_height = root.winfo_screenheight()
+            resized_image = original_image.resize((screen_width, screen_height))
+            background_image = ImageTk.PhotoImage(resized_image)
+            background_label = tk.Label(root, image=background_image)
+            background_label.place(x=0, y=0, relwidth=1, relheight=1)
         root.configure(background='black')
         font = ('Helvetica', 24)
         main_frame = tk.Frame(root, bg='black')
