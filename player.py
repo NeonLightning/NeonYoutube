@@ -68,7 +68,7 @@ setup()
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from pytube import Search, YouTube, innertube, Playlist
 from pytube.innertube import _default_clients
-from pytube.exceptions import AgeRestrictedError
+from pytube.exceptions import AgeRestrictedError, PytubeError
 import flask.cli
 
 flask.cli.show_server_banner = lambda *args: None
@@ -87,16 +87,9 @@ app.config['ready_for_new_queue'] = True
 last_printed_status = ""
 
 def authenticate_user():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    is_authenticated = config.getboolean('app', 'is_authenticated', fallback=False)
-    if not is_authenticated:
-        yt = YouTube('https://www.youtube.com/watch?v=TB7e8hI_Yew', use_oauth=True)
-        title = yt.title
-        logging.debug(f"{title}")
-        config.set('app', 'is_authenticated', 'True')
-        with open('config.ini', 'w') as configfile:
-            config.write(configfile)
+    yt = YouTube('https://www.youtube.com/watch?v=TB7e8hI_Yew', use_oauth=True)
+    title = yt.title
+    logging.debug(f"{title}")
             
 def display_black_screen():
     def is_x_server_running():
@@ -172,6 +165,7 @@ def play_video_from_queue():
     while app.config.get('is_playing', False):
         while app.config['VIDEO_QUEUE']:
             video_info = app.config['VIDEO_QUEUE'].pop(0)
+            authenticate_user()
             app.config['next_video_title'] = f"{video_info['title']}"
             video_url = f'https://www.youtube.com/watch?v={video_info["video_id"]}'
             videopath = "/tmp/ytvid.mp4"
