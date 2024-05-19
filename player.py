@@ -364,7 +364,7 @@ def shuffle_queue():
 def skip():
     try:
         if app.config.get('is_playing', False):
-            subprocess.run(["pkill", "vlc"])
+            subprocess.run(["pkill", "mpv"])
         return redirect(url_for('index'))
     except Exception as e:
         return f"An error occurred: {e}"
