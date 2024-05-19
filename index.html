@@ -42,9 +42,9 @@
             align-items: center;
         }
 		.queueListBorder {
-			border: 2px solid #aaffaa;
+			border: 5px solid #330033;
 			padding: 10px;
-			margin-top: 20px;
+			margin: 20px;
 		}
 		#controlButtons {
 			display: flex;
@@ -52,7 +52,26 @@
 			margin-top: 10px;
 		}
 		#controlButtons form {
-			margin: 0 5px;
+			margin: 5px;
+		}
+		#searchResultsContainer {
+			scrollbar-width: thin;
+			scrollbar-color: #330033 #550055;
+			flex: 1;
+			overflow-y: auto;
+			max-height: calc(50vh);
+			border: 5px solid #330033;
+		}
+		#searchResultsContainer::-webkit-scrollbar {
+			display: none;
+		}
+		#searchResultsContainer::-webkit-scrollbar-thumb {
+			background-color: #330033; /* thumb color */
+			border-radius: 5px;
+		}
+		#searchResultsContainer::-webkit-scrollbar-track {
+			background-color: #550055;
+			border-radius: 5px;
 		}
     </style>
 </head>
@@ -94,20 +113,22 @@
 		</div>
 		<ul id="queueList" class="{% if app.config['VIDEO_QUEUE'] %}queueListBorder{% endif %}">
 		</ul>
-        {% if results %}
-            <h2>Search Results</h2>
-            <ul id="searchResults">
-			{% for result in results %}
-			<li style="display: flex;">
-				<form action="/queue" method="post">
-					<input type="hidden" name="video_url" value="{{ result.video_url }}">
-					<button type="submit">Queue</button>
-				</form>
-				<a href="https://www.youtube.com/watch?v={{ result.video_url }}" target="_blank">{{ result.title }}</a>
-			</li>
-			{% endfor %}
-            </ul>
-        {% endif %}
+		{% if results %}
+			<h2>Search Results</h2>
+			<div id="searchResultsContainer">
+				<ul id="searchResults">
+				{% for result in results %}
+				<li style="display: flex;">
+					<form action="/queue" method="post">
+						<input type="hidden" name="video_url" value="{{ result.video_url }}">
+						<button type="submit">Queue</button>
+					</form>
+					<a href="https://www.youtube.com/watch?v={{ result.video_url }}" target="_blank">{{ result.title }}</a>
+				</li>
+				{% endfor %}
+				</ul>
+			</div>
+		{% endif %}
     </div>
     <script>
 		function updateQueue() {

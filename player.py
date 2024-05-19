@@ -68,11 +68,13 @@ setup()
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from pytube import Search, YouTube, innertube, Playlist
 from pytube.innertube import _default_clients
-from pytube.exceptions import AgeRestrictedError, PytubeError
+from pytube.exceptions import AgeRestrictedError
 import flask.cli
 
 flask.cli.show_server_banner = lambda *args: None
 logging.getLogger("werkzeug").disabled = True
+pytube_logger = logging.getLogger('pytube')
+pytube_logger.setLevel(logging.ERROR)
 innertube._cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
 innertube._token_file = os.path.join(innertube._cache_dir, 'tokens.json')
 innertube._default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
@@ -215,6 +217,7 @@ def index():
         search_term = request.form['search_term']
         s = Search(search_term)
         if s.results:
+            s.get_next_results()
             results_data = []
             for i, result in enumerate(s.results, start=1):
                 result_data = {
@@ -224,7 +227,7 @@ def index():
                 results_data.append(result_data)
             return render_template('index.html', results=results_data, app=app)
         else:
-            return render_template('index.html', message='No search results found.', app=app)
+            return render_template('index.html', message='No search results found.', app=app)    
     return render_template('index.html', app=app)
 
 @app.route('/add_to_queue', methods=['POST'])
