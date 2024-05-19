@@ -89,6 +89,13 @@ app.config['VIDEO_QUEUE'] = []
 app.config['ready_for_new_queue'] = True
 last_printed_status = ""
 
+def is_x_server_running():
+    try:
+        subprocess.check_output(['pidof', 'Xorg'])
+        return True
+    except subprocess.CalledProcessError:
+        return False
+    
 def authenticate_user():
     yt = YouTube('https://www.youtube.com/watch?v=TB7e8hI_Yew', use_oauth=True)
     title = yt.title
@@ -159,12 +166,6 @@ def get_ip_address(interface):
         return None
     except subprocess.CalledProcessError:
         return None
-def is_x_server_running():
-    try:
-        subprocess.check_output(['pidof', 'Xorg'])
-        return True
-    except subprocess.CalledProcessError:
-        return False
     
 def on_progress(stream, chunk, bytes_remaining):
     total_size = stream.filesize
