@@ -88,7 +88,6 @@ app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__)))
 app.config['VIDEO_QUEUE'] = []
 app.config['ready_for_new_queue'] = True
 last_printed_status = ""
-progress_percentage = 0
 
 def authenticate_user():
     yt = YouTube('https://www.youtube.com/watch?v=TB7e8hI_Yew', use_oauth=True)
@@ -97,7 +96,6 @@ def authenticate_user():
             
 def display_black_screen():
     if is_x_server_running():
-        
         os.environ['DISPLAY'] = ':0'
         import tkinter as tk
         global root
@@ -169,10 +167,10 @@ def is_x_server_running():
         return False
     
 def on_progress(stream, chunk, bytes_remaining):
-    global progress_percentage
     total_size = stream.filesize
     bytes_downloaded = total_size - bytes_remaining
     progress_percentage = (bytes_downloaded / total_size) * 100 if total_size else 0
+    app.config['progress_percentage'] = progress_percentage
     return progress_percentage
 
 def play_video_from_queue():
@@ -219,7 +217,6 @@ def print_status_to_console():
             os.system('clear')
             print(current_status)
             last_printed_status = current_status
-        time.sleep(2)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
