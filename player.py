@@ -97,6 +97,7 @@ def authenticate_user():
             
 def display_black_screen():
     if is_x_server_running():
+        
         os.environ['DISPLAY'] = ':0'
         import tkinter as tk
         global root
@@ -110,7 +111,6 @@ def display_black_screen():
         ip_eth0 = get_ip_address('eth0')
         ip_wlan0 = get_ip_address('wlan0')
         ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
-        progress_percentage = app.config.get('progress_percentage', 0)
         label_ip = tk.Label(text=f"http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}", fg="purple", bg="black", font=font)
         label_ip.pack(anchor='nw')
         title_frame = tk.Frame(main_frame, bg='black')
@@ -120,6 +120,7 @@ def display_black_screen():
         loading_label = tk.Label(title_frame, text="", fg="white", bg="black", font=font)
         loading_label.pack(expand=True)
         def update_text():
+            global progress_percentage
             if app.config.get('next_video_title'):
                 next_video_title = app.config['next_video_title']
                 label.config(text=next_video_title)
@@ -168,11 +169,11 @@ def is_x_server_running():
         return False
     
 def on_progress(stream, chunk, bytes_remaining):
+    global progress_percentage
     total_size = stream.filesize
     bytes_downloaded = total_size - bytes_remaining
-    percentage = (bytes_downloaded / total_size) * 100 if total_size else 0
-    app.config['progress_percentage'] = percentage
-    return percentage
+    progress_percentage = (bytes_downloaded / total_size) * 100 if total_size else 0
+    return progress_percentage
 
 def play_video_from_queue():
     while app.config.get('is_playing', False):
