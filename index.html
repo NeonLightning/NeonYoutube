@@ -14,7 +14,6 @@
             background-color: black;
             color: #aaffaa;
             cursor: pointer;
-            margin-top: 3px;
         }
         button:hover {
             background-color: #330033;
@@ -23,10 +22,11 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            margin-bottom: 10px;
         }
         input {
             margin-bottom: 3px;
+			width: 60vw;
+			min-width: 200px;
         }
         label {
             margin-bottom: 5px;
@@ -41,26 +41,32 @@
             flex-direction: column;
             align-items: center;
         }
+		.divider {
+			border-bottom: 2px solid #330033;
+			margin: 5px;
+		}
 		.queueListBorder {
 			border: 5px solid #330033;
 			padding: 10px;
-			margin: 20px;
+			margin: 0px;
 		}
 		#controlButtons {
 			display: flex;
 			justify-content: center;
-			margin-top: 10px;
+			margin-top: 0px;
 		}
 		#controlButtons form {
-			margin: 5px;
+			margin: 0px;
 		}
 		#searchResultsContainer {
 			scrollbar-width: thin;
 			scrollbar-color: #330033 #550055;
 			flex: 1;
 			overflow-y: auto;
-			max-height: calc(50vh);
+			max-height: 50vh;
 			border: 5px solid #330033;
+			width: 60vw;
+			min-width: 200px;
 		}
 		#searchResultsContainer::-webkit-scrollbar {
 			display: none;
@@ -125,6 +131,7 @@
 					</form>
 					<a href="https://www.youtube.com/watch?v={{ result.video_url }}" target="_blank">{{ result.title }}</a>
 				</li>
+				<div class="divider"></div>
 				{% endfor %}
 				</ul>
 			</div>
