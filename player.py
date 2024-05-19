@@ -110,6 +110,7 @@ def display_black_screen():
         ip_eth0 = get_ip_address('eth0')
         ip_wlan0 = get_ip_address('wlan0')
         ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
+        progress_percentage = app.config.get('progress_percentage', 0)
         label_ip = tk.Label(text=f"http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}", fg="purple", bg="black", font=font)
         label_ip.pack(anchor='nw')
         title_frame = tk.Frame(main_frame, bg='black')
@@ -122,7 +123,8 @@ def display_black_screen():
             if app.config.get('next_video_title'):
                 next_video_title = app.config['next_video_title']
                 label.config(text=next_video_title)
-                loading_label.config(text="Loading...")
+                current_status = f"\nDownloading Progress: {progress_percentage:.1f}%\n"
+                loading_label.config(text=current_status)
             else:
                 label.config(text="No video playing")
                 loading_label.config(text="")
