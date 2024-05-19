@@ -47,9 +47,10 @@ def setup():
     config.read('config.ini')
     is_setup_done = config.getboolean('app', 'is_setup_done')
     if not is_setup_done:
-        if not check_and_install_package('tk', 'python3-tk'):
-            print("Failed to install tk.")
-            sys.exit(1)
+        if is_x_server_running():
+            if not check_and_install_package('tk', 'python3-tk'):
+                print("Failed to install tk.")
+                sys.exit(1)
         if not check_and_install_package('flask', 'python3-flask'):
             print("Failed to install Flask.")
             sys.exit(1)
@@ -68,8 +69,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from pytube import Search, YouTube, innertube, Playlist
 from pytube.innertube import _default_clients
 from pytube.exceptions import AgeRestrictedError
-import pytube.request
-import flask.cli
+import flask.cli, pytube.request
 
 flask.cli.show_server_banner = lambda *args: None
 logging.getLogger("werkzeug").disabled = True
