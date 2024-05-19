@@ -279,7 +279,7 @@ def add_to_queue():
 def close():
     if os.path.exists("/tmp/ytvid.mp4"):
         subprocess.Popen(["rm", "-rf", "/tmp/ytvid.mp4"])
-    subprocess.run(["pkill", "vlc"])
+    subprocess.run(["pkill", "mpv"])
     os.system('kill %d' % os.getpid())
     
 @app.route('/clear', methods=['POST'])
