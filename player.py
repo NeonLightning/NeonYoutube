@@ -80,7 +80,7 @@ pytube_logger = logging.getLogger('pytube')
 pytube_logger.setLevel(logging.ERROR)
 pytube.request.default_range_size = 1048576
 innertube._cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files')
-innertube._token_file = os.path.join(innertube._cache_dir, 'tokens.json')
+innertube._token_file = os.path.join(innertube._cache_dir, 'token.json')
 innertube._default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
 innertube._default_clients["IOS"]["context"]["client"]["clientVersion"] = "19.08.35"
 innertube._default_clients["ANDROID_EMBED"]["context"]["client"]["clientVersion"] = "19.08.35"
