@@ -111,6 +111,9 @@ def backgroundset():
         import tkinter as tk
         from PIL import Image, ImageTk
         backgrounds_dir = "./files/backgrounds/"
+        if not os.path.exists(backgrounds_dir):
+            root.configure(background='black')
+            return
         background_files = [f for f in os.listdir(backgrounds_dir) if os.path.isfile(os.path.join(backgrounds_dir, f)) and f.endswith(('.png', '.jpg', '.jpeg', '.gif', '.PNG', '.JPG', '.JPEG', '.GIF'))]
         if background_files:
             selected_background = random.choice(background_files)
