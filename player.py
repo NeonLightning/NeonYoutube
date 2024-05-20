@@ -40,11 +40,11 @@ def check_and_install_package(package_name, apt_name=None):
 
 def setup():
     config = configparser.ConfigParser()
-    if not os.path.exists('config.ini'):
+    if not os.path.exists('files/config.ini'):
         config['app'] = {'is_setup_done': 'False'}
-        with open('config.ini', 'w') as configfile:
+        with open('files/config.ini', 'w') as configfile:
             config.write(configfile)
-    config.read('config.ini')
+    config.read('files/config.ini')
     is_setup_done = config.getboolean('app', 'is_setup_done')
     if not is_setup_done:
         if is_x_server_running():
@@ -64,7 +64,7 @@ def setup():
             print("Failed to install mpv.")
             sys.exit(1)
         config.set('app', 'is_setup_done', 'True')
-        with open('config.ini', 'w') as configfile:
+        with open('files/config.ini', 'w') as configfile:
             config.write(configfile)
 setup()
 
@@ -78,8 +78,8 @@ flask.cli.show_server_banner = lambda *args: None
 logging.getLogger("werkzeug").disabled = True
 pytube_logger = logging.getLogger('pytube')
 pytube_logger.setLevel(logging.ERROR)
-pytube.request.default_range_size = 524288
-innertube._cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
+pytube.request.default_range_size = 1048576
+innertube._cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files/cache')
 innertube._token_file = os.path.join(innertube._cache_dir, 'tokens.json')
 innertube._default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
 innertube._default_clients["IOS"]["context"]["client"]["clientVersion"] = "19.08.35"
@@ -87,7 +87,8 @@ innertube._default_clients["ANDROID_EMBED"]["context"]["client"]["clientVersion"
 innertube._default_clients["IOS_EMBED"]["context"]["client"]["clientVersion"] = "19.08.35"
 innertube._default_clients["IOS_MUSIC"]["context"]["client"]["clientVersion"] = "6.41"
 innertube._default_clients["ANDROID_MUSIC"] = _default_clients["ANDROID_CREATOR"]
-app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__)))
+template_dir = os.path.join(os.path.dirname(__file__), 'files')
+app = Flask(__name__, template_folder=template_dir, static_url_path='', static_folder='files')
 app.config['VIDEO_QUEUE'] = []
 app.config['ready_for_new_queue'] = True
 last_printed_status = ""
@@ -113,8 +114,8 @@ def display_black_screen():
         root = tk.Tk()
         root.config(cursor='none')
         root.attributes('-fullscreen', True)
-        if os.path.exists("./background.png"):
-            original_image = Image.open("background.png")
+        if os.path.exists("./files/background.png"):
+            original_image = Image.open("./files/background.png")
             screen_width = root.winfo_screenwidth()
             screen_height = root.winfo_screenheight()
             resized_image = original_image.resize((screen_width, screen_height))
@@ -141,7 +142,7 @@ def display_black_screen():
                 next_video_title = app.config['next_video_title']
                 label.config(text=next_video_title)
                 progress_percentage = app.config.get('progress_percentage', 0)
-                current_status = f"\nDownloading Progress: {progress_percentage:.1f}%\n"
+                current_status = f"\nDownloading Progress: {progress_percentage:.0f}%\n"
                 loading_label.config(text=current_status)
             else:
                 label.config(text="No video playing")

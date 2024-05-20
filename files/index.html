@@ -4,19 +4,31 @@
     <title>YouTube Player</title>
     <style>
 		a {
-			color: #ff00ff;
+			color:#121212;
+            text-shadow: none;
 		}
         body {
-            background-color: #550055;
-            color: #aaffaa;
+		    background-image: url('{{ url_for('static', filename='wallpaper.png') }}');
+            background-repeat: repeat;
+            background-size: auto;
+            background-color: #E82D76;
+            text-shadow: 
+                -2px -2px 0 #121212,  
+                 2px -2px 0 #121212,
+                -2px  2px 0 #121212,
+                 2px  2px 0 #121212;
+            color: #FF5799;
+			font-weight: bold;
         }
         button {
-            background-color: black;
-            color: #aaffaa;
+			font-weight: bold;
+            background-color: #121212;
+            color: #FF5799;
             cursor: pointer;
         }
         button:hover {
-            background-color: #330033;
+			background-color: #FF5799;
+            color: #121212;
         }
         form {
             display: flex;
@@ -28,6 +40,11 @@
 			width: 60vw;
 			min-width: 200px;
         }
+		input[type="text"],
+		button {
+			color: #121212;
+			background-color: #FF5799;
+		}
         label {
             margin-bottom: 5px;
         }
@@ -42,11 +59,11 @@
             align-items: center;
         }
 		.divider {
-			border-bottom: 2px solid #330033;
+			border-bottom: 2px solid #121212;
 			margin: 5px;
 		}
 		.queueListBorder {
-			border: 5px solid #330033;
+			border: 5px solid #121212;
 			padding: 10px;
 			margin: 0px;
 		}
@@ -58,13 +75,24 @@
 		#controlButtons form {
 			margin: 0px;
 		}
-		#searchResultsContainer {
+		#queueList {
+			background-color: #B92F6B;
 			scrollbar-width: thin;
-			scrollbar-color: #330033 #550055;
+			scrollbar-color: #121212 #E82D76;
 			flex: 1;
 			overflow-y: auto;
 			max-height: 50vh;
-			border: 5px solid #330033;
+			width: calc(60vw - 20px); /* Subtract total padding and border width */
+			min-width: 200px;
+		}
+		#searchResultsContainer {
+            background-color: #B92F6B;
+			scrollbar-width: thin;
+			scrollbar-color: #121212 #E82D76;
+			flex: 1;
+			overflow-y: auto;
+			max-height: 50vh;
+			border: 5px solid #121212;
 			width: 60vw;
 			min-width: 200px;
 		}
@@ -72,11 +100,11 @@
 			display: none;
 		}
 		#searchResultsContainer::-webkit-scrollbar-thumb {
-			background-color: #330033; /* thumb color */
+			background-color: #121212;
 			border-radius: 5px;
 		}
 		#searchResultsContainer::-webkit-scrollbar-track {
-			background-color: #550055;
+			background-color: #E82D76;
 			border-radius: 5px;
 		}
     </style>
@@ -116,8 +144,6 @@
 				<button type="submit">Skip</button>
 			</form>
 		</div>
-		<ul id="queueList" class="{% if app.config['VIDEO_QUEUE'] %}queueListBorder{% endif %}">
-		</ul>
 		{% if results %}
 			<h2>Search Results</h2>
 			<div id="searchResultsContainer">
@@ -135,7 +161,9 @@
 				</ul>
 			</div>
 		{% endif %}
-		<a href=https://github.com/NeonLightning/ style="padding-top: 50px;">NeonLightning's github</a>
+		<ul id="queueList" class="{% if app.config['VIDEO_QUEUE'] %}queueListBorder{% endif %}">
+		</ul>
+		<a href=https://github.com/NeonLightning/ style="margin-top: 50px; background-color: #E82D76CC;">NeonLightning's github</a>
     </div>
     <script>
 		function updateQueue() {
