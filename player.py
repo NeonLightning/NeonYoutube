@@ -1,4 +1,4 @@
-import configparser, subprocess, pkg_resources,  sys, os, logging, threading, time, random
+import configparser, subprocess, pkg_resources,  sys, os, logging, threading, time, random, socket
 
 def check_and_install_package(package_name, apt_name=None):
     try:
@@ -23,17 +23,6 @@ def check_and_install_package(package_name, apt_name=None):
         else:
             try:
                 subprocess.check_call(['sudo', 'apt', 'install', '-y', 'mpv'])
-                return True
-            except subprocess.CalledProcessError:
-                pass
-    if package_name == 'socat':
-        socat_check = subprocess.run(['which', 'socat'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        socat_installed = socat_check.returncode == 0
-        if socat_installed:
-            return True
-        else:
-            try:
-                subprocess.check_call(['sudo', 'apt', 'install', '-y', 'socat'])
                 return True
             except subprocess.CalledProcessError:
                 pass
@@ -73,9 +62,6 @@ def setup():
             sys.exit(1)
         if not check_and_install_package('mpv'):
             print("Failed to install mpv.")
-            sys.exit(1)
-        if not check_and_install_package('socat'):
-            print("Failed to install socat.")
             sys.exit(1)
         config.set('app', 'is_setup_done', 'True')
         with open('files/config.ini', 'w') as configfile:
@@ -446,12 +432,18 @@ def remove():
 
 @app.route('/seekbackward', methods=['POST'])
 def seekbackward():
-        subprocess.run(["socat", "-", f"unix-connect:/tmp/mpvsocket"], input=f"seek -10\n".encode())
+        client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        client_socket.connect('/tmp/mpvsocket'
+        client_socket.send("seek -10\n".encode())
+        client_socket.close()
         return redirect(url_for('index'))
 
 @app.route('/seekforward', methods=['POST'])
 def seekforward():
-        subprocess.run(["socat", "-", f"unix-connect:/tmp/mpvsocket"], input=f"seek 10\n".encode())
+        client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        client_socket.connect('/tmp/mpvsocket'
+        client_socket.send("seek 10\n".encode())
+        client_socket.close()
         return redirect(url_for('index'))
 
 @app.route('/shuffle_queue', methods=['GET'])
