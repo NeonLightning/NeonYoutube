@@ -110,25 +110,16 @@ def backgroundset():
         os.environ['DISPLAY'] = ':0'
         import tkinter as tk
         from PIL import Image, ImageTk
-        
         backgrounds_dir = "./files/backgrounds/"
-        
-        # List all files in the backgrounds directory
         background_files = [f for f in os.listdir(backgrounds_dir) if os.path.isfile(os.path.join(backgrounds_dir, f))]
-        
         if background_files:
-            # Randomly select a background image
             selected_background = random.choice(background_files)
             selected_background_path = os.path.join(backgrounds_dir, selected_background)
-            
-            # Open and resize the selected background image
             original_image = Image.open(selected_background_path)
             screen_width = root.winfo_screenwidth()
             screen_height = root.winfo_screenheight()
             resized_image = original_image.resize((screen_width, screen_height))
             background_image = ImageTk.PhotoImage(resized_image)
-            
-            # Display the background image
             if hasattr(backgroundset, 'background_label'):
                 backgroundset.background_label.config(image=background_image)
                 backgroundset.background_label.image = background_image
@@ -137,7 +128,6 @@ def backgroundset():
                 backgroundset.background_label.place(x=0, y=0, relwidth=1, relheight=1)
                 backgroundset.background_label.image = background_image
         else:
-            # Fallback if no background images are found
             root.configure(background='black')
             
 def display_black_screen():
