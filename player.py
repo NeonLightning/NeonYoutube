@@ -15,14 +15,25 @@ def check_and_install_package(package_name, apt_name=None):
     pip_installed = pip_check.returncode == 0
     if apt_installed or pip_installed:
         return True
-    if package_name == 'vlc':
-        vlc_check = subprocess.run(['which', 'vlc'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        vlc_installed = vlc_check.returncode == 0
-        if vlc_installed:
+    if package_name == 'mpv':
+        mpv_check = subprocess.run(['which', 'mpv'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        mpv_installed = mpv_check.returncode == 0
+        if mpv_installed:
             return True
         else:
             try:
                 subprocess.check_call(['sudo', 'apt', 'install', '-y', 'mpv'])
+                return True
+            except subprocess.CalledProcessError:
+                pass
+    if package_name == 'socat':
+        socat_check = subprocess.run(['which', 'socat'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        socat_installed = socat_check.returncode == 0
+        if socat_installed:
+            return True
+        else:
+            try:
+                subprocess.check_call(['sudo', 'apt', 'install', '-y', 'socat'])
                 return True
             except subprocess.CalledProcessError:
                 pass
@@ -63,6 +74,9 @@ def setup():
         if not check_and_install_package('mpv'):
             print("Failed to install mpv.")
             sys.exit(1)
+        if not check_and_install_package('socat'):
+            print("Failed to install socat.")
+            sys.exit(1)
         config.set('app', 'is_setup_done', 'True')
         with open('files/config.ini', 'w') as configfile:
             config.write(configfile)
@@ -79,6 +93,7 @@ logging.getLogger("werkzeug").disabled = True
 pytube_logger = logging.getLogger('pytube')
 pytube_logger.setLevel(logging.ERROR)
 pytube.request.default_range_size = 1048576
+#pytube.request.default_range_size = 10485
 innertube._cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files')
 innertube._token_file = os.path.join(innertube._cache_dir, 'token.json')
 innertube._default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
@@ -211,6 +226,9 @@ def on_progress(stream, chunk, bytes_remaining):
     app.config['progress_percentage'] = progress_percentage
     return progress_percentage
 
+def completed_function(stream, file_path):
+        return 100
+
 def play_video_from_queue():
     while app.config.get('is_playing', False):
         while app.config['VIDEO_QUEUE']:
@@ -221,16 +239,20 @@ def play_video_from_queue():
             videopath = "/tmp/ytvid.mp4"
             app.config['progress_percentage'] = 0
             try:
-                stream = YouTube(video_url, on_progress_callback=on_progress).streams.get_highest_resolution()
+                app.config['video_status'] = 'playing'
+                stream = YouTube(video_url, on_progress_callback=on_progress, on_complete_callback=completed_function).streams.get_highest_resolution()
                 stream.download(output_path="/tmp", filename="ytvid.mp4")
+                app.config['video_status'] = 'stopped'
             except AgeRestrictedError as e:
+                app.config['video_status'] = 'playing'
                 app.config['next_video_title'] = f"{video_info['title']}"
-                stream = YouTube(video_url, use_oauth=True, on_progress_callback=on_progress).streams.get_highest_resolution()
+                stream = YouTube(video_url, use_oauth=True, on_progress_callback=on_progress, on_complete_callback=completed_function).streams.get_highest_resolution()
                 stream.download(output_path="/tmp", filename="ytvid.mp4")
+                app.config['video_status'] = 'stopped'
             if is_x_server_running():
                 backgroundset()
             process = subprocess.Popen([
-                "mpv", "--fullscreen", "--no-border", "--ontop", "--no-terminal", videopath
+                "mpv", "--fullscreen", "--no-border", "--ontop", "--no-terminal", videopath, "--input-ipc-server=/tmp/mpvsocket"
             ], stderr=subprocess.DEVNULL)
             while True:
                 if process.poll() is not None:
@@ -241,23 +263,51 @@ def play_video_from_queue():
         app.config['ready_for_new_queue'] = True
         break
 
+def scroll_text(text):
+    scroll_width = 55
+    width = len(text)
+    while True:
+        for i in range(width):
+            yield text[i:i+scroll_width].ljust(scroll_width)
+
 def print_status_to_console():
     global last_printed_status
+    scroll_width = 55
+    scroll_delay = 0.5
+    scroll_generator = None
     while True:
         if app.config.get('next_video_title'):
             next_video_title = app.config['next_video_title']
             progress_percentage = app.config.get('progress_percentage', 0)
-            current_status = f"\nTitle: {next_video_title}\nDownloading Progress: {progress_percentage:.1f}%\n"
+            title_line = f"{next_video_title}"
+            if progress_percentage == 100:
+                progress_line = "Playing"
+            else:
+                progress_line = f"Downloading Progress: {progress_percentage:.1f}%"
+            if len(title_line) > scroll_width:
+                if scroll_generator is None:
+                    scroll_generator = scroll_text(title_line)
+                truncated_title = next(scroll_generator)
+            else:
+                truncated_title = title_line.ljust(scroll_width)
+                scroll_generator = None
         else:
-            current_status = "\nNo video playing\n"
+            title_line = "No video playing"
+            progress_line = ""
+            truncated_title = title_line.ljust(scroll_width)
+            scroll_generator = None
         ip_eth0 = get_ip_address('eth0')
         ip_wlan0 = get_ip_address('wlan0')
         ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
-        current_status += f"Address: http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}\n"
+        address = f"Address: http://{ip_address if ip_address else 'Not available'}"
+        if ip_address:
+            address += ":5000"
+        current_status = truncated_title + '\n' + progress_line + '\n' + address
         if current_status != last_printed_status:
             os.system('clear')
-            print(current_status)
+            print("\n".join(["-+"*30, truncated_title, progress_line, address, "-+"*30]))
             last_printed_status = current_status
+        time.sleep(scroll_delay)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -393,6 +443,16 @@ def remove():
         if app.config.get('next_video_title') == removed_video['title']:
             app.config['next_video_title'] = None
     return redirect(url_for('index'))
+
+@app.route('/seekbackward', methods=['POST'])
+def seekbackward():
+        subprocess.run(["socat", "-", f"unix-connect:/tmp/mpvsocket"], input=f"seek -10\n".encode())
+        return redirect(url_for('index'))
+
+@app.route('/seekforward', methods=['POST'])
+def seekforward():
+        subprocess.run(["socat", "-", f"unix-connect:/tmp/mpvsocket"], input=f"seek 10\n".encode())
+        return redirect(url_for('index'))
 
 @app.route('/shuffle_queue', methods=['GET'])
 def shuffle_queue():

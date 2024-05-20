@@ -131,19 +131,25 @@
         </form>
 		<div id="controlButtons">
 			{% if app.config['VIDEO_QUEUE'] %}
-			<form action="/play" method="post">
-				<button type="submit">Play</button>
-			</form>
-			<form action="/shuffle_queue" method="get">
-				<button type="submit">Shuffle</button>
-			</form>
-			<form action="/clear" method="post">
-				<button type="submit">Clear</button>
-			</form>
+				<form action="/play" method="post">
+					<button type="submit">Play</button>
+				</form>
+				<form action="/shuffle_queue" method="get">
+					<button type="submit">Shuffle</button>
+				</form>
+				<form action="/clear" method="post">
+					<button type="submit">Clear</button>
+				</form>
 			{% endif %}
-			<form action="/skip" method="post">
-				<button type="submit">Skip</button>
-			</form>
+				<form action="/skip" method="post">
+					<button type="submit">Skip</button>
+				</form>
+				<form action="/seekbackward" method="post">
+					<button type="submit">Seek Backward</button>
+				</form>
+				<form action="/seekforward" method="post">
+					<button type="submit">Seek Forward</button>
+				</form>
 		</div>
 		{% if results %}
 			<h2>Search Results</h2>
