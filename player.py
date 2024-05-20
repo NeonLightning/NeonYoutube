@@ -79,7 +79,7 @@ logging.getLogger("werkzeug").disabled = True
 pytube_logger = logging.getLogger('pytube')
 pytube_logger.setLevel(logging.ERROR)
 pytube.request.default_range_size = 1048576
-innertube._cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files/cache')
+innertube._cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files')
 innertube._token_file = os.path.join(innertube._cache_dir, 'tokens.json')
 innertube._default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
 innertube._default_clients["IOS"]["context"]["client"]["clientVersion"] = "19.08.35"
@@ -104,6 +104,41 @@ def authenticate_user():
     yt = YouTube('https://www.youtube.com/watch?v=TB7e8hI_Yew', use_oauth=True)
     title = yt.title
     logging.debug(f"{title}")
+
+def backgroundset():
+    if is_x_server_running():
+        os.environ['DISPLAY'] = ':0'
+        import tkinter as tk
+        from PIL import Image, ImageTk
+        
+        backgrounds_dir = "./files/backgrounds/"
+        
+        # List all files in the backgrounds directory
+        background_files = [f for f in os.listdir(backgrounds_dir) if os.path.isfile(os.path.join(backgrounds_dir, f))]
+        
+        if background_files:
+            # Randomly select a background image
+            selected_background = random.choice(background_files)
+            selected_background_path = os.path.join(backgrounds_dir, selected_background)
+            
+            # Open and resize the selected background image
+            original_image = Image.open(selected_background_path)
+            screen_width = root.winfo_screenwidth()
+            screen_height = root.winfo_screenheight()
+            resized_image = original_image.resize((screen_width, screen_height))
+            background_image = ImageTk.PhotoImage(resized_image)
+            
+            # Display the background image
+            if hasattr(backgroundset, 'background_label'):
+                backgroundset.background_label.config(image=background_image)
+                backgroundset.background_label.image = background_image
+            else:
+                backgroundset.background_label = tk.Label(root, image=background_image)
+                backgroundset.background_label.place(x=0, y=0, relwidth=1, relheight=1)
+                backgroundset.background_label.image = background_image
+        else:
+            # Fallback if no background images are found
+            root.configure(background='black')
             
 def display_black_screen():
     if is_x_server_running():
@@ -114,15 +149,7 @@ def display_black_screen():
         root = tk.Tk()
         root.config(cursor='none')
         root.attributes('-fullscreen', True)
-        if os.path.exists("./files/background.png"):
-            original_image = Image.open("./files/background.png")
-            screen_width = root.winfo_screenwidth()
-            screen_height = root.winfo_screenheight()
-            resized_image = original_image.resize((screen_width, screen_height))
-            background_image = ImageTk.PhotoImage(resized_image)
-            background_label = tk.Label(root, image=background_image)
-            background_label.place(x=0, y=0, relwidth=1, relheight=1)
-        root.configure(background='black')
+        backgroundset()
         font = ('Helvetica', 24)
         main_frame = tk.Frame(root, bg='black')
         main_frame.pack(expand=True)
@@ -195,6 +222,7 @@ def play_video_from_queue():
             app.config['next_video_title'] = f"{video_info['title']}"
             video_url = f'https://www.youtube.com/watch?v={video_info["video_id"]}'
             videopath = "/tmp/ytvid.mp4"
+            app.config['progress_percentage'] = 0
             try:
                 stream = YouTube(video_url, on_progress_callback=on_progress).streams.get_highest_resolution()
                 stream.download(output_path="/tmp", filename="ytvid.mp4")
@@ -209,6 +237,8 @@ def play_video_from_queue():
                 if process.poll() is not None:
                     break
                 time.sleep(1)
+            if is_x_server_running():
+                backgroundset()
             app.config['next_video_title'] = None
             subprocess.Popen(["rm", "-rf", videopath])
         app.config['ready_for_new_queue'] = True
