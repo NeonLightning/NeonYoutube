@@ -224,6 +224,8 @@ def play_video_from_queue():
                 app.config['next_video_title'] = f"{video_info['title']}"
                 stream = YouTube(video_url, use_oauth=True, on_progress_callback=on_progress).streams.get_highest_resolution()
                 stream.download(output_path="/tmp", filename="ytvid.mp4")
+            if is_x_server_running():
+                backgroundset()
             process = subprocess.Popen([
                 "mpv", "--fullscreen", "--no-border", "--ontop", "--no-terminal", videopath
             ], stderr=subprocess.DEVNULL)
@@ -231,8 +233,6 @@ def play_video_from_queue():
                 if process.poll() is not None:
                     break
                 time.sleep(1)
-            if is_x_server_running():
-                backgroundset()
             app.config['next_video_title'] = None
             subprocess.Popen(["rm", "-rf", videopath])
         app.config['ready_for_new_queue'] = True
