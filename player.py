@@ -151,9 +151,9 @@ def display_black_screen():
         title_frame = tk.Frame(main_frame, bg='black')
         title_frame.pack(expand=True)
         label = tk.Label(title_frame, text="No video playing", fg="white", bg="black", font=font)
-        label.pack(expand=True)
         loading_label = tk.Label(title_frame, text="", fg="white", bg="black", font=font)
-        loading_label.pack(expand=True)
+        label.grid(row=0, column=0, sticky='n', pady=(5, 0))
+        loading_label.grid(row=1, column=0, sticky='n', pady=(5, 0))
         def update_text():
             if app.config.get('next_video_title'):
                 next_video_title = app.config['next_video_title']
