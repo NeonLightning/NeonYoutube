@@ -141,15 +141,17 @@
 					<button type="submit">Clear</button>
 				</form>
 			{% endif %}
-				<form action="/skip" method="post">
-					<button type="submit">Skip</button>
-				</form>
-				<form action="/seekbackward" method="post">
-					<button type="submit">Seek Backward</button>
-				</form>
-				<form action="/seekforward" method="post">
-					<button type="submit">Seek Forward</button>
-				</form>
+		</div>
+		<div id="controlButtons">
+			<form action="/skip" method="post">
+				<button type="submit">Skip</button>
+			</form>
+			<form action="/seekbackward" method="post">
+				<button type="submit">Seek Backward</button>
+			</form>
+			<form action="/seekforward" method="post">
+				<button type="submit">Seek Forward</button>
+			</form>
 		</div>
 		{% if results %}
 			<h2>Search Results</h2>

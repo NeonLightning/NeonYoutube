@@ -433,7 +433,7 @@ def remove():
 @app.route('/seekbackward', methods=['POST'])
 def seekbackward():
         client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        client_socket.connect('/tmp/mpvsocket'
+        client_socket.connect('/tmp/mpvsocket')
         client_socket.send("seek -10\n".encode())
         client_socket.close()
         return redirect(url_for('index'))
@@ -441,7 +441,7 @@ def seekbackward():
 @app.route('/seekforward', methods=['POST'])
 def seekforward():
         client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        client_socket.connect('/tmp/mpvsocket'
+        client_socket.connect('/tmp/mpvsocket')
         client_socket.send("seek 10\n".encode())
         client_socket.close()
         return redirect(url_for('index'))
