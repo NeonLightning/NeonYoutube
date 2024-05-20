@@ -213,7 +213,8 @@ def on_progress(stream, chunk, bytes_remaining):
     return progress_percentage
 
 def completed_function(stream, file_path):
-        return 100
+        app.config['progress_percentage'] = 100
+        return
 
 def play_video_from_queue():
     while app.config.get('is_playing', False):
