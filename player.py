@@ -168,8 +168,12 @@ def display_black_screen():
             ip_wlan0 = get_ip_address('wlan0')
             ip_address = ip_eth0 if ip_eth0 is not None else ip_wlan0
             label_ip.config(text=f"Address: http://{ip_address if ip_address else 'Not available'}{':5000' if ip_address else ''}")
-            root.after(200, update_text)
+            root.after(500, update_text)
+        def update_background():
+            backgroundset()
+            root.after(60000, update_background)
         update_text()
+        update_background()
         subprocess.run(['xset', 's', 'off'])
         subprocess.run(['xset', '-dpms'])    
         root.mainloop()
