@@ -17,6 +17,10 @@ it will install required dependancies if not found but requires setuptools. if y
 
 if you want a background there is rudimentary functionality for it. just place a png files in /files/backgrounds and it'll scale to your screen.
 
+
+
+right now there is a bug in pytube so videos won't play the fix is here
+[pytube fix]https://github.com/pytube/pytube/issues/1933
 ## Screenshots
 
 ![Screenshot 1](screenshots/screenshot1.png)
