@@ -373,36 +373,41 @@ def get_queue():
 
 @app.route('/move_to_bottom', methods=['POST'])
 def move_to_bottom():
+    search_term = request.form.get('search_term', '')
     index = int(request.form['index'])
     if index >= 0 and index < len(app.config['VIDEO_QUEUE']) - 1:
         video = app.config['VIDEO_QUEUE'].pop(index)
         app.config['VIDEO_QUEUE'].append(video)
-    return redirect(url_for('index'))
+    return render_template('index.html', search_term=search_term, app=app)
 
 @app.route('/move_down', methods=['POST'])
 def move_down():
+    search_term = request.form.get('search_term', '')
     index = int(request.form['index'])
     if index >= 0 and index < len(app.config['VIDEO_QUEUE']) - 1:
         app.config['VIDEO_QUEUE'][index], app.config['VIDEO_QUEUE'][index + 1] = app.config['VIDEO_QUEUE'][index + 1], app.config['VIDEO_QUEUE'][index]
-    return redirect(url_for('index'))
+    return render_template('index.html', search_term=search_term, app=app)
 
 @app.route('/move_to_top', methods=['POST'])
 def move_to_top():
+    search_term = request.form.get('search_term', '')
     index = int(request.form['index'])
     if index > 0 and index < len(app.config['VIDEO_QUEUE']):
         video = app.config['VIDEO_QUEUE'].pop(index)
         app.config['VIDEO_QUEUE'].insert(0, video)
-    return redirect(url_for('index'))
+    return render_template('index.html', search_term=search_term, app=app)
 
 @app.route('/move_up', methods=['POST'])
 def move_up():
+    search_term = request.form.get('search_term', '')
     index = int(request.form['index'])
     if index > 0 and index < len(app.config['VIDEO_QUEUE']):
         app.config['VIDEO_QUEUE'][index], app.config['VIDEO_QUEUE'][index - 1] = app.config['VIDEO_QUEUE'][index - 1], app.config['VIDEO_QUEUE'][index]
-    return redirect(url_for('index'))
+    return render_template('index.html', search_term=search_term, app=app)
 
 @app.route('/play', methods=['POST', 'GET'])
 def play():
+    search_term = request.form.get('search_term', '')
     if not app.config.get('is_playing', False):
         app.config['is_playing'] = True
         threading.Thread(target=play_video_from_queue).start()
@@ -412,7 +417,7 @@ def play():
         else:
             app.config['ready_for_new_queue'] = False
             threading.Thread(target=play_video_from_queue).start()
-    return redirect(url_for('index'))
+    return render_template('index.html', search_term=search_term, app=app)
 
 @app.route('/queue', methods=['POST'])
 def queue_video():
@@ -424,44 +429,49 @@ def queue_video():
         'video_id': yt.video_id,
     }
     app.config['VIDEO_QUEUE'].append(video_info)
-    return render_template('index.html', search_term=search_term, message='No search results found.', app=app)
+    return render_template('index.html', search_term=search_term, app=app)
 
 @app.route('/remove', methods=['POST'])
 def remove():
+    search_term = request.form.get('search_term', '')
     index = int(request.form['index'])
     if 0 <= index < len(app.config['VIDEO_QUEUE']):
         removed_video = app.config['VIDEO_QUEUE'].pop(index)
         if app.config.get('next_video_title') == removed_video['title']:
             app.config['next_video_title'] = None
-    return redirect(url_for('index'))
+    return render_template('index.html', search_term=search_term, app=app)
 
 @app.route('/seekbackward', methods=['POST'])
 def seekbackward():
-        client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        client_socket.connect('/tmp/mpvsocket')
-        client_socket.send("seek -10\n".encode())
-        client_socket.close()
-        return redirect(url_for('index'))
+    search_term = request.form.get('search_term', '')
+    client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    client_socket.connect('/tmp/mpvsocket')
+    client_socket.send("seek -10\n".encode())
+    client_socket.close()
+    return render_template('index.html', search_term=search_term, app=app)
 
 @app.route('/seekforward', methods=['POST'])
 def seekforward():
-        client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        client_socket.connect('/tmp/mpvsocket')
-        client_socket.send("seek 10\n".encode())
-        client_socket.close()
-        return redirect(url_for('index'))
+    search_term = request.form.get('search_term', '')
+    client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    client_socket.connect('/tmp/mpvsocket')
+    client_socket.send("seek 10\n".encode())
+    client_socket.close()
+    return render_template('index.html', search_term=search_term, app=app)
 
 @app.route('/shuffle_queue', methods=['GET'])
 def shuffle_queue():
+    search_term = request.args.get('search_term', '')
     random.shuffle(app.config['VIDEO_QUEUE'])
-    return redirect(url_for('index'))
+    return render_template('index.html', search_term=search_term, app=app)
 
 @app.route('/skip', methods=['POST'])
 def skip():
+    search_term = request.form.get('search_term', '')
     try:
         if app.config.get('is_playing', False):
             subprocess.run(["pkill", "mpv"])
-        return redirect(url_for('index'))
+            return render_template('index.html', search_term=search_term, app=app)
     except Exception as e:
         return f"An error occurred: {e}"
 
