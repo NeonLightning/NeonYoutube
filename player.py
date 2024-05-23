@@ -301,7 +301,6 @@ def index():
     search_term = ''
     results_data = []
     message = ''
-
     if request.method == 'POST':
         search_term = request.form.get('search_term', '')
         s = Search(search_term)
