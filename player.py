@@ -78,7 +78,7 @@ flask.cli.show_server_banner = lambda *args: None
 logging.getLogger("werkzeug").disabled = True
 pytube_logger = logging.getLogger('pytube')
 pytube_logger.setLevel(logging.ERROR)
-pytube.request.default_range_size = 1048576
+pytube.request.default_range_size = 1572864
 #pytube.request.default_range_size = 10485
 innertube._cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files')
 innertube._token_file = os.path.join(innertube._cache_dir, 'token.json')
@@ -458,9 +458,9 @@ def seekforward():
     client_socket.close()
     return render_template('index.html', search_term=search_term, app=app)
 
-@app.route('/shuffle_queue', methods=['GET'])
+@app.route('/shuffle_queue', methods=['POST'])
 def shuffle_queue():
-    search_term = request.args.get('search_term', '')
+    search_term = request.form.get('search_term', '')
     random.shuffle(app.config['VIDEO_QUEUE'])
     return render_template('index.html', search_term=search_term, app=app)
 
