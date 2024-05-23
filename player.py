@@ -295,11 +295,15 @@ def print_status_to_console():
             print("\n".join(["-+"*30, truncated_title, progress_line, address, "-+"*30]))
             last_printed_status = current_status
         time.sleep(scroll_delay)
-
+        
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    search_term = ''
+    results_data = []
+    message = ''
+
     if request.method == 'POST':
-        search_term = request.form['search_term']
+        search_term = request.form.get('search_term', '')
         s = Search(search_term)
         if is_x_server_running() is False:
             print(f"Searching: {search_term}")
@@ -307,17 +311,16 @@ def index():
             s.get_next_results()
             s.get_next_results()
             s.get_next_results()
-            results_data = []
             for i, result in enumerate(s.results, start=1):
                 result_data = {
                     "title": result.title,
                     "video_url": result.watch_url,
                 }
                 results_data.append(result_data)
-            return render_template('index.html', results=results_data, app=app)
         else:
-            return render_template('index.html', message='No search results found.', app=app)    
-    return render_template('index.html', app=app)
+            message = 'No search results found.'
+    
+    return render_template('index.html', search_term=search_term, results=results_data, message=message, app=app)
 
 @app.route('/add_to_queue', methods=['POST'])
 def add_to_queue():
@@ -412,15 +415,16 @@ def play():
     return redirect(url_for('index'))
 
 @app.route('/queue', methods=['POST'])
-def queue():
+def queue_video():
     video_url = request.form['video_url']
     yt = YouTube(video_url)
+    search_term = request.form.get('search_term', '')
     video_info = {
         'title': yt.title,
         'video_id': yt.video_id,
     }
     app.config['VIDEO_QUEUE'].append(video_info)
-    return redirect(url_for('index'))
+    return render_template('index.html', search_term=search_term, message='No search results found.', app=app)
 
 @app.route('/remove', methods=['POST'])
 def remove():

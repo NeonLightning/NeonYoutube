@@ -118,7 +118,7 @@
         <h1>YouTube Player</h1>
         <form action="/" method="post">
             <label for="search_term">Search:</label>
-            <input type="text" id="search_term" name="search_term">
+            <input type="text" id="search_term" name="search_term" value="{{ search_term }}">
             <button type="submit">Search</button>
         </form>
         {% if message %}
@@ -160,10 +160,11 @@
 				<ul id="searchResults">
 				{% for result in results %}
 				<li style="display: flex;">
-					<form action="/queue" method="post">
-						<input type="hidden" name="video_url" value="{{ result.video_url }}">
-						<button type="submit">Queue</button>
-					</form>
+                    <form action="/queue" method="post">
+                        <input type="hidden" name="video_url" value="{{ result.video_url }}">
+                        <input type="hidden" name="search_term" value="{{ search_term }}">
+                        <button type="submit">Queue</button>
+                    </form>
 					<a href="https://www.youtube.com/watch?v={{ result.video_url }}" target="_blank">{{ result.title }}</a>
 				</li>
 				<div class="divider"></div>
