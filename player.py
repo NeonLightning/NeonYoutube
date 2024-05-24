@@ -37,7 +37,24 @@ def check_and_install_package(package_name, apt_name=None):
         return True
     except subprocess.CalledProcessError:
         pass
-
+    
+def check_and_update_cipher_file(cipher_file_path):
+    with open(cipher_file_path, 'r') as file:
+        lines = file.readlines()
+    target_line = 410
+    old_code = "transform_plan_raw = find_object_from_startpoint(raw_code, match.span()[1] - 1)"
+    new_code = "    transform_plan_raw = js\n"
+    if target_line < len(lines):
+        if lines[target_line].strip() == old_code:
+            lines[target_line] = new_code
+            with open(cipher_file_path, 'w') as file:
+                file.writelines(lines)
+            print(f"Line 411 updated successfully in {cipher_file_path}.")
+        else:
+            pass
+    else:
+        print("Target line not found in cipher.py.")
+        
 def setup():
     config = configparser.ConfigParser()
     if not os.path.exists('files/config.ini'):
@@ -72,7 +89,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from pytube import Search, YouTube, innertube, Playlist
 from pytube.innertube import _default_clients
 from pytube.exceptions import AgeRestrictedError
-import flask.cli, pytube.request
+import flask.cli, pytube.request, pytube
 
 flask.cli.show_server_banner = lambda *args: None
 logging.getLogger("werkzeug").disabled = True
@@ -93,6 +110,16 @@ app = Flask(__name__, template_folder=template_dir, static_url_path='', static_f
 app.config['VIDEO_QUEUE'] = []
 app.config['ready_for_new_queue'] = True
 last_printed_status = ""
+
+def find_pytube_cipher_file():
+    pytube_path = os.path.dirname(pytube.__file__)
+    cipher_file_path = os.path.join(pytube_path, 'cipher.py')
+    
+    if os.path.exists(cipher_file_path):
+        return cipher_file_path
+    else:
+        print("cipher.py file not found in PyTube installation.")
+        return None
 
 def is_x_server_running():
     try:
@@ -475,6 +502,9 @@ def skip():
         return f"An error occurred: {e}"
 
 if __name__ == '__main__':
+    cipher_file_path = find_pytube_cipher_file()
+    if cipher_file_path:
+        check_and_update_cipher_file(cipher_file_path)
     authenticate_user()
     gui_thread = threading.Thread(target=display_black_screen)
     gui_thread.start()

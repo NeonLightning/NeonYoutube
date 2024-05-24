@@ -19,7 +19,11 @@ if you want a background there is rudimentary functionality for it. just place a
 
 
 
-right now there is a bug in pytube so videos won't play the fix is here
+right now there is a bug in pytube so videos won't play.
+
+i've added some code to fix it if it's not patched already though.
+
+
 [pytube fix]https://github.com/pytube/pytube/issues/1933
 ## Screenshots
 
